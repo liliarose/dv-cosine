@@ -25,8 +25,6 @@ public class Dataset {
         String filename = "alldata-id_p" + gram + "gram.txt";
         List<Document> allDocs = new ArrayList<Document>();
         Map<String, Integer> word2id = new HashMap<String, Integer>();
-        String[] datasetSplit = {"train", "test", "extra", "extra"};
-        int[] datasetSentiment = {1, 0, 1, 0, -1, -1, -1, -1};
 
         try (BufferedReader br = new BufferedReader(new FileReader(new File(filename)))) {
             String line;
@@ -47,9 +45,30 @@ public class Dataset {
                     wordIds[j] = index;
                     j++;
                 }
-                String instanceSplit = datasetSplit[(int) i / 25000];
-                int instanceSentiment = datasetSentiment[(int) i / 12500];
-                allDocs.add(new Document(wordIds, i, instanceSplit, instanceSentiment));
+		// assuming train (neg, pos) and then test (neg, pos)
+		int train_size = 8117; 	
+		// int train_pos = 3446; 	
+		int train_neg = 3122; 	
+		// int test_pos = 876 + 417; 	
+		int test_neg = 873 + 408; 	
+		String instanceSplit;
+                int instanceSentiment;
+		if (i < train_size){
+		  instanceSplit = "train";
+		  if (i < train_neg){
+		    instanceSentiment = 0;
+		  } else {
+		    instanceSentiment = 1;
+		  }
+		} else {
+		  instanceSplit = "test";
+		  if  (i < train_size + test_neg){
+		    instanceSentiment = 0;
+		  } else {
+		    instanceSentiment = 1; 
+		  }
+		}
+		allDocs.add(new Document(wordIds, i, instanceSplit, instanceSentiment));
                 i++;
                 if (i % 10000 == 0) {
                     System.out.println(i);
