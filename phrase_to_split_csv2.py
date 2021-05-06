@@ -68,23 +68,24 @@ def partition(base_directory):
     sentence_partitions = get_sentence_partitions(base_directory)
     # noinspection PyUnresolvedReferences
     data = phrase_sentiments.join(sentence_partitions, on="phrase", how='right')
+    
     data["splitset_label"] = data["splitset_label"].fillna(1).astype(int)
+
+    # Combining the test and dev sets (i.e. converting 3(dev) -> 2(test) in datasetSplit) 
+    data["splitset_label"] = data["splitset_label"].map(lambda x: int(x>1))
+
     data["phrase"] = data["phrase"].str.replace(r"\s('s|'d|'re|'ll|'m|'ve|n't)\b", lambda m: m.group(1))
     # This actually does drop a bunch..... 
     data = data[['phrase', 'coarse', 'splitset_label']].dropna(axis=0)
     data.index = data.index.astype(int)
     return data.groupby("splitset_label")
 
-test = True
-show_sentiment = True
+show_sentiment = False
 base_directory, output_directory = sys.argv[1:3]
 os.makedirs(output_directory, exist_ok=True)
 for splitset, partition in partition(base_directory):
-    split_name = {1: "train", 2: "test", 3: "dev"}[splitset]
-    if test: 
-        print(split_name, len(partition))
     
-    filename = os.path.join(output_directory, "stanford-sentiment-treebank.%s.txt" % split_name)
+    filename = os.path.join(output_directory, "alldata-id_p3gram.txt")
     # adding bigrams 
     partition['bigram'] = partition['phrase'].map(to_bigrams)
 
@@ -97,9 +98,9 @@ for splitset, partition in partition(base_directory):
     # grouping them --> negative, then positive
     n, p = partition2.groupby('coarse', sort=True)
     partition2 = pandas.concat([n[1], p[1]])
-
+    print(partition2.groupby(['coarse', 'splitset_label']).count())
     if show_sentiment:
-        partition2[['phrase', 'bigram', 'trigram', 'coarse']].to_csv(filename, sep='\t', quoting=csv.QUOTE_NONE, escapechar="\\")   
+        partition2[['phrase', 'bigram', 'trigram', 'coarse']].to_csv(filename, mode = 'a', sep='\t', quoting=csv.QUOTE_NONE, escapechar="\\", header=False)   
     else:
-        partition2[['phrase', 'bigram', 'trigram']].to_csv(filename, sep='\t', quoting=csv.QUOTE_NONE, escapechar="\\")
+        partition2[['phrase', 'bigram', 'trigram']].to_csv(filename, sep='\t', quoting=csv.QUOTE_NONE, escapechar="\\", header=False)
 
