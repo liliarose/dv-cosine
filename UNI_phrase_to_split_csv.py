@@ -86,11 +86,11 @@ for splitset, partition in partition(base_directory):
         print(split_name, len(partition))
     
     filename = os.path.join(output_directory, "stanford-sentiment-treebank.%s.txt" % split_name)
-    # adding bigrams 
-    partition['bigram'] = partition['phrase'].map(to_bigrams)
+    # # adding bigrams 
+    # partition['bigram'] = partition['phrase'].map(to_bigrams)
 
-    # adding trigrams
-    partition['trigram'] = partition['phrase'].map(to_trigrams)
+    # # adding trigrams
+    # partition['trigram'] = partition['phrase'].map(to_trigrams)
     
     # removing neturals 
     partition2 = partition[partition['coarse'] != 'neutral'] 
@@ -102,7 +102,6 @@ for splitset, partition in partition(base_directory):
     partition2 = pandas.concat([n[1], p[1]])
 
     if show_sentiment:
-        partition2[['phrase', 'bigram', 'trigram', 'coarse']].to_csv(filename, sep='\t', quoting=csv.QUOTE_NONE, escapechar="\\", header=False, mode='a')   
+        partition2[['phrase', 'coarse']].to_csv(filename, sep='\t', quoting=csv.QUOTE_NONE, escapechar="\\", header=False, mode='a')   
     else:
-        partition2[['phrase', 'bigram', 'trigram']].to_csv(filename, sep='\t', quoting=csv.QUOTE_NONE, escapechar="\\", header=False, mode='a')
-
+        partition2[['phrase']].to_csv(filename, sep='\t', quoting=csv.QUOTE_NONE, escapechar="\\", header=False, mode='a')
