@@ -22,6 +22,13 @@ def to_bigrams(sentence):
     bigram_sentences = list(map(lambda x: gram_split.join(x), split_bigram))
     return " ".join(bigram_sentences)
 
+def to_trigrams(sentence):
+    split_sent = sentence.split()
+    split_trigram =  list(zip(split_sent[:-1], split_sent[1:], split_sent[2:]))
+    trigram_sentences = list(map(lambda x: gram_split.join(x), split_trigram))
+    return " ".join(trigram_sentences)
+
+
 fine_sentiment_arr = [0, 0.2, 0.4, 0.6, 0.8, 1.0]
 def get_phrase_sentiments(base_directory):
     def group_labels(label):
@@ -80,6 +87,9 @@ for splitset, partition in partition(base_directory):
     filename = os.path.join(output_directory, "stanford-sentiment-treebank.%s.txt" % split_name)
     # adding bigrams 
     partition['bigram'] = partition['phrase'].map(to_bigrams)
+
+    #adding trigrams
+    partition['trigram'] = partition['phrase'].map(to_trigrams)
     
     # removing neturals 
     partition2 = partition[partition['coarse'] != 'neutral'] 
@@ -89,7 +99,7 @@ for splitset, partition in partition(base_directory):
     partition2 = pandas.concat([n[1], p[1]])
 
     if show_sentiment:
-        partition2[['phrase', 'bigram', 'coarse']].to_csv(filename, sep='\t', quoting=csv.QUOTE_NONE, escapechar="\\")   
+        partition2[['phrase', 'bigram', 'trigram', 'coarse']].to_csv(filename, sep='\t', quoting=csv.QUOTE_NONE, escapechar="\\")   
     else:
-        partition2[['phrase', 'bigram']].to_csv(filename, sep='\t', quoting=csv.QUOTE_NONE, escapechar="\\")
+        partition2[['phrase', 'bigram', 'trigram']].to_csv(filename, sep='\t', quoting=csv.QUOTE_NONE, escapechar="\\")
 
