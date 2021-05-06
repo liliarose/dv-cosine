@@ -31,7 +31,7 @@ public class Dataset {
             int i = 0;
             while ((line = br.readLine()) != null) {
                 //String[] tokens = line.split("\\s+");
-                String[] tokens = line.split(" ");
+                String[] tokens = line.split("\t");
                 List<String> words = Arrays.asList(tokens).subList(1, tokens.length);
                 int[] wordIds = new int[words.size()];
                 int j = 0;
