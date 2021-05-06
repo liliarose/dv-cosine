@@ -35,13 +35,23 @@ SentimentDocument = namedtuple('SentimentDocument', 'words tags split sentiment'
 alldocs = []  # will hold all docs in original order
 filename='alldata-id_p1gram.txt'
 
+train_size = 6568;
+train_neg = 3122;
+test_neg = 873 + 408;
+
 with open(filename, encoding='utf-8') as alldata:
     for line_no, line in enumerate(alldata):
         tokens = line.split()
         words = tokens[1:]
         tags = [line_no] # `tags = [tokens[0]]` would also work at extra memory cost
-        split = ['train','test','extra','extra'][line_no//25000]  # 25k train, 25k test, 25k extra
-        sentiment = [1.0, 0.0, 1.0, 0.0, None, None, None, None][line_no//12500] # [12.5K pos, 12.5K neg]*2 then unknown
+        if line_no < train_size: 
+            split = 'train'
+            if line_no < train_neg: sentiment = 0
+            else: sentiment = 1
+        else:
+            split = 'test' 
+            if line_no < train_neg + train_size: sentiment = 0
+            else: sentiment = 1
         alldocs.append(SentimentDocument(words, tags, split, sentiment))
     
 train_docs = [doc for doc in alldocs if doc.split == 'train']
@@ -73,15 +83,15 @@ X_test=[x.multiply(r).tocsr() for x in X_test_pre]
 X_test=vstack(X_test)
 ############################################################################################
 
-X_train = hstack((X_train,X_train_embedding))
-X_test = hstack((X_test,X_test_embedding))
+X_train2 = hstack((X_train,X_train_embedding))
+X_test2 = hstack((X_test,X_test_embedding))
 
 print('Training classifier')
 
 svc=linear_model.LogisticRegression()
-svc.fit(X_train,Y_train)
+svc.fit(X_train2,Y_train)
 
 print('Testing classifier')
 Y_test=[doc.sentiment for doc in test_docs]
-print('Accuracy=',svc.score(X_test,Y_test)*100)
+print('Accuracy=',svc.score(X_test2,Y_test)*100)
 
