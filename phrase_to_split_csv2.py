@@ -95,6 +95,7 @@ for splitset, partition in partition(base_directory):
     # removing neturals 
     partition2 = partition[partition['coarse'] != 'neutral'] 
 
+    partition2['full'] = partition2['phrase'] + partition2['bigram'] + partition2['trigram']
     # grouping them --> negative, then positive
     n, p = partition2.groupby('coarse', sort=True)
     partition2 = pandas.concat([n[1], p[1]])
@@ -102,5 +103,6 @@ for splitset, partition in partition(base_directory):
     if show_sentiment:
         partition2[['phrase', 'bigram', 'trigram', 'coarse']].to_csv(filename, mode = 'a', sep='\t', quoting=csv.QUOTE_NONE, escapechar="\\", header=False)   
     else:
-        partition2[['phrase', 'bigram', 'trigram']].to_csv(filename, sep='\t', quoting=csv.QUOTE_NONE, escapechar="\\", header=False)
+        # partition2[['phrase', 'bigram', 'trigram']].to_csv(filename, sep='\t', quoting=csv.QUOTE_NONE, escapechar="\\", header=False)
+        partition2[['full']].to_csv(filename, sep='\t', quoting=csv.QUOTE_NONE, escapechar="\\", header=False)
 
