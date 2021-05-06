@@ -68,12 +68,7 @@ def partition(base_directory):
     sentence_partitions = get_sentence_partitions(base_directory)
     # noinspection PyUnresolvedReferences
     data = phrase_sentiments.join(sentence_partitions, on="phrase", how='right')
-    
     data["splitset_label"] = data["splitset_label"].fillna(1).astype(int)
-
-    # Combining the test and dev sets (i.e. converting 3(dev) -> 2(test) in datasetSplit) 
-    data["splitset_label"] = data["splitset_label"].map(lambda x: int(x>1))
-
     data["phrase"] = data["phrase"].str.replace(r"\s('s|'d|'re|'ll|'m|'ve|n't)\b", lambda m: m.group(1))
     # This actually does drop a bunch..... 
     data = data[['phrase', 'coarse', 'splitset_label']].dropna(axis=0)
@@ -81,23 +76,21 @@ def partition(base_directory):
     data.index = data.index.astype(int)
     return data.groupby("splitset_label")
 
-show_sentiment = False
+test = True
+show_sentiment = True
 base_directory, output_directory = sys.argv[1:3]
 os.makedirs(output_directory, exist_ok=True)
 for splitset, partition in partition(base_directory):
-<<<<<<< HEAD
     split_name = {0: "train", 1: "test"}[splitset]
     if test: 
         print(split_name, len(partition))
-=======
->>>>>>> 4110e01f347a658d19fd7012fbc7b0e47691ab03
     
-    filename = os.path.join(output_directory, "alldata-id_p3gram.txt")
-    # adding bigrams 
-    partition['bigram'] = partition['phrase'].map(to_bigrams)
+    filename = os.path.join(output_directory, "stanford-sentiment-treebank.%s.txt" % split_name)
+    # # adding bigrams 
+    # partition['bigram'] = partition['phrase'].map(to_bigrams)
 
-    # adding trigrams
-    partition['trigram'] = partition['phrase'].map(to_trigrams)
+    # # adding trigrams
+    # partition['trigram'] = partition['phrase'].map(to_trigrams)
     
     # removing neturals 
     partition2 = partition[partition['coarse'] != 'neutral'] 
@@ -107,9 +100,8 @@ for splitset, partition in partition(base_directory):
     # grouping them --> negative, then positive
     n, p = partition2.groupby('coarse', sort=True)
     partition2 = pandas.concat([n[1], p[1]])
-    print(partition2.groupby(['coarse', 'splitset_label']).count())
-    if show_sentiment:
-        partition2[['phrase', 'bigram', 'trigram', 'coarse']].to_csv(filename, mode = 'a', sep='\t', quoting=csv.QUOTE_NONE, escapechar="\\", header=False)   
-    else:
-        partition2[['phrase', 'bigram', 'trigram']].to_csv(filename, sep='\t', quoting=csv.QUOTE_NONE, escapechar="\\", header=False)
 
+    if show_sentiment:
+        partition2[['phrase', 'coarse']].to_csv(filename, sep='\t', quoting=csv.QUOTE_NONE, escapechar="\\", header=False, mode='a')   
+    else:
+        partition2[['phrase']].to_csv(filename, sep='\t', quoting=csv.QUOTE_NONE, escapechar="\\", header=False, mode='a')
