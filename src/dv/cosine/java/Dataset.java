@@ -32,7 +32,9 @@ public class Dataset {
             while ((line = br.readLine()) != null) {
                 //String[] tokens = line.split("\\s+");
                 String[] tokens = line.split("\t");
-                List<String> words = Arrays.asList(tokens).subList(1, tokens.length);
+                
+		List<String> words = Arrays.asList(tokens[1].split("\\s+"));
+		// Arrays.asList(tokens).subList(1, tokens.length);
                 int[] wordIds = new int[words.size()];
                 int j = 0;
                 for (String word : words) {
@@ -45,12 +47,13 @@ public class Dataset {
                     wordIds[j] = index;
                     j++;
                 }
+		// System.out.println(words.size() + " " + words.toString());
 		// assuming train (neg, pos) and then test (neg, pos)
-		int train_size = 8117; 	
+		int train_size = 6568; 	
 		// int train_pos = 3446; 	
 		int train_neg = 3122; 	
 		// int test_pos = 876 + 417; 	
-		int test_neg = 873 + 408; 	
+		int test_neg = 1281; 
 		String instanceSplit;
                 int instanceSentiment;
 		if (i < train_size){
@@ -70,14 +73,14 @@ public class Dataset {
 		}
 		allDocs.add(new Document(wordIds, i, instanceSplit, instanceSentiment));
                 i++;
-                if (i % 10000 == 0) {
+                if (i % 1000 == 0) {
                     System.out.println(i);
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-
+	System.out.println("doc size: " + allDocs.size());
         return allDocs;
     }
 
