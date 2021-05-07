@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 public class NeuralNetwork {
 
     /* Parameters here */
-    private static final int gram = 3;
+    private static final int gram = 2;
     private static double lr = 0.001;
     private static final int negSize = 5;
     private static int iter = 120;
@@ -224,8 +224,9 @@ public class NeuralNetwork {
         WV = new double[v][];
         int realV = 0;
         for (int i = 0; i < v; i++) {
+	    // System.out.println("wordId=" + Dataset.wordIdCounts.get(i));
             if (Dataset.wordIdCounts.get(i) >= 2) {
-                realV++;
+		realV++;
                 WV[i] = new double[n];
                 for (int j = 0; j < n; j++) {
                     WV[i][j] = (random.nextFloat() - 0.5f) / n;
