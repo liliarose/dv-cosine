@@ -1,9 +1,11 @@
 import numpy as np
-from collections import namedtuple
+from collections import namedtuple, Counter
 from sklearn import naive_bayes
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn import linear_model
 from scipy.sparse import vstack, hstack
+from nltk.corpus import stopwords
+import math
 
 #params here
 
@@ -96,18 +98,69 @@ class_probs = svc.predict_proba(X_test)
 # Y_test contains the actual labels
 Y_test=[doc.sentiment for doc in test_docs]
 
+highWords = Counter()
+lowWords = Counter()
+incorrectWords = Counter()
+
+probBuckets = [0]*21
+incorrectProbBuckets = [0]*21
+
 for i, sentiment in enumerate(Y_test):
-    string = str(i) + " " + str(sentiment) + " " + str(predictions[i]) + " " + str(class_probs[i]) + "\n"
-    string += " ".join(test_docs[i].words) + "\n"
+
+    # string = str(i) + " " + str(sentiment) + " " + str(predictions[i]) + " " + str(class_probs[i]) + "\n"
+    # string += " ".join(test_docs[i].words) + "\n"
 
     if (sentiment != predictions[i]):
         # incorrectly labeled
-        incorrect_file.write(string)
+        # incorrect_file.write(string)
+        incorrectWords += Counter(test_docs[i].words)
+
+        bucket = math.floor(max(class_probs[i])*20)
+        incorrectProbBuckets[bucket] += 1
+
     elif (max(class_probs[i]) > high_threshold):
         # high confidence
-        high_file.write(string)
+        # high_file.write(string)
+        highWords += Counter(test_docs[i].words)
+        
+        bucket = math.floor(max(class_probs[i])*20)
+        probBuckets[bucket] += 1
+
     elif (max(class_probs[i]) < low_threshold):
         # low confidence
-        low_file.write(string)
+        # low_file.write(string)
+        lowWords += Counter(test_docs[i].words)
         
+        bucket = math.floor(max(class_probs[i])*20)
+        probBuckets[bucket] += 1
+    
+    else:
+        bucket = math.floor(max(class_probs[i])*20)
+        probBuckets[bucket] += 1
+
+
+for d in [highWords, lowWords, incorrectWords]:
+    for k, v in d.most_common(100):
+        if k in stopwords.words() or k in ' !#$%&"()*+, -./:;<=>?@[\]^_`{|}~':
+            del d[k]
+
+topWords = Counter()    
+for d in [highWords, lowWords, incorrectWords]:
+    for k, v in d.most_common(40):
+        if k in topWords.keys():
+            topWords[k] += 1
+        else:
+            topWords[k] = 1
+
+for key in topWords.keys():
+    if topWords[key] > 1:
+        print(key)
+        for d in [highWords, lowWords, incorrectWords]:
+            del d[key]
+
+print('Top Five High Confidence Words', highWords.most_common(10))
+print('Top Five Low Confidence Words', lowWords.most_common(10))
+print('Top Five Incorrect Words', incorrectWords.most_common(10))
+print('Counts', probBuckets)
+print('Incorrect Counts', incorrectProbBuckets)
 print('Accuracy=',svc.score(X_test,Y_test)*100)
